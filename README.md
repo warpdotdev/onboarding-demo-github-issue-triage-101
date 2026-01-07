@@ -14,8 +14,8 @@ A terminal UI for browsing and triaging GitHub issues.
 
 ## Prerequisites
 
-- [GitHub CLI (`gh`)](https://cli.github.com/) installed and authenticated
 - Rust toolchain
+- (Optional) GitHub personal access token for accessing private repos or increasing rate limits
 
 ## Installation
 
@@ -28,6 +28,18 @@ Or run directly:
 ```bash
 cargo run -- owner/repo
 ```
+
+## (Optional) Authentication
+
+Set a GitHub personal access token for private repos or higher API rate limits. [Follow this guide to create a personal access token.](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+
+Then, export your token into your shell environment before starting the TUI:
+
+```bash
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+```
+
+Without a token, the app uses unauthenticated requests (60 requests/hour limit, public repos only).
 
 ## Usage
 
@@ -55,10 +67,10 @@ issue-triage facebook/react --limit 500
 
 ## How It Works
 
-1. Runs `gh issue list` to fetch issues as JSON
+1. Fetches issues via GitHub REST API (using `octocrab`)
 2. Parses and displays in a split-pane TUI
 3. Filter works on issue titles and label names
-4. `Enter` runs `gh issue view --web` to open in browser
+4. `Enter` opens the issue in your browser
 
 ## License
 

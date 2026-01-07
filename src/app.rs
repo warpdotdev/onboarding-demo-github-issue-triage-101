@@ -14,10 +14,12 @@ pub struct App {
     pub input_mode: InputMode,
     pub loading: bool,
     pub error: Option<String>,
+    runtime: tokio::runtime::Runtime,
 }
 
 impl App {
     pub fn new(repo: String) -> Self {
+        let runtime = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
         Self {
             repo,
             issues: Vec::new(),
@@ -26,6 +28,7 @@ impl App {
             input_mode: InputMode::Normal,
             loading: true,
             error: None,
+            runtime,
         }
     }
 
@@ -34,7 +37,8 @@ impl App {
         self.loading = true;
         self.error = None;
 
-        match github::fetch_issues(&self.repo, 100) {
+        let repo = self.repo.clone();
+        match self.runtime.block_on(github::fetch_issues(&repo, 100)) {
             Ok(issues) => {
                 self.issues = issues;
                 self.selected = 0;
