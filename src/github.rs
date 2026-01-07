@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Issue {
@@ -66,17 +66,14 @@ pub fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> {
     Ok(issues)
 }
 
-/// Open an issue in the browser using gh CLI
+/// Open an issue in the browser
 pub fn open_in_browser(repo: &str, issue_number: u64) -> Result<(), String> {
-    Command::new("gh")
-        .args([
-            "issue",
-            "view",
-            &issue_number.to_string(),
-            "-R",
-            repo,
-            "--web",
-        ])
+    let url = format!("https://github.com/{}/issues/{}", repo, issue_number);
+
+    Command::new("open")
+        .arg(&url)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .spawn()
         .map_err(|e| format!("Failed to open browser: {e}"))?;
 
