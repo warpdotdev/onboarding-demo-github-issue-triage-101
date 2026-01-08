@@ -86,7 +86,7 @@ fn draw_issue_list(frame: &mut Frame, app: &App, area: Rect) {
 fn issue_to_list_item<'a>(issue: &Issue, selected: bool) -> ListItem<'a> {
     let mut style = Style::default();
     if selected {
-        style = style.bg(Color::DarkGray).add_modifier(Modifier::BOLD);
+        style = style.bg(Color::Rgb(60, 60, 80)).add_modifier(Modifier::BOLD);
     }
 
     // First line: issue number and title
@@ -104,7 +104,7 @@ fn issue_to_list_item<'a>(issue: &Issue, selected: bool) -> ListItem<'a> {
         .iter()
         .take(3)
         .map(|l| {
-            let color = parse_hex_color(&l.color).unwrap_or(Color::Gray);
+        let color = parse_hex_color(&l.color).unwrap_or(Color::Yellow);
             Span::styled(
                 format!(" {} ", l.name),
                 Style::default().bg(color).fg(Color::Black),
@@ -115,7 +115,7 @@ fn issue_to_list_item<'a>(issue: &Issue, selected: bool) -> ListItem<'a> {
     let label_line = if label_spans.is_empty() {
         Line::from(Span::styled(
             "  no labels",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Yellow),
         ))
     } else {
         Line::from(label_spans)
@@ -152,9 +152,9 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("Author: ", Style::default().fg(Color::DarkGray)),
+            Span::styled("Author: ", Style::default().fg(Color::Yellow)),
             Span::raw(issue.author.login.clone()),
-            Span::styled("  Created: ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  Created: ", Style::default().fg(Color::Yellow)),
             Span::raw(format_date(&issue.created_at)),
         ]),
     ];
@@ -168,7 +168,7 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
             .collect::<Vec<_>>()
             .join(", ");
         lines.push(Line::from(vec![
-            Span::styled("Labels: ", Style::default().fg(Color::DarkGray)),
+            Span::styled("Labels: ", Style::default().fg(Color::Yellow)),
             Span::raw(label_text),
         ]));
     }
@@ -176,7 +176,7 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
     lines.push(Line::from(""));
     lines.push(Line::styled(
         "─".repeat(40),
-        Style::default().fg(Color::DarkGray),
+        Style::default().fg(Color::Yellow),
     ));
     lines.push(Line::from(""));
 
@@ -188,13 +188,13 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
         if body.lines().count() > 20 {
             lines.push(Line::styled(
                 "... (truncated)",
-                Style::default().fg(Color::DarkGray),
+                Style::default().fg(Color::Yellow),
             ));
         }
     } else {
         lines.push(Line::styled(
             "No description",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Yellow),
         ));
     }
 
@@ -203,7 +203,7 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
         lines.push(Line::from(""));
         lines.push(Line::styled(
             "─".repeat(40),
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Yellow),
         ));
         lines.push(Line::styled(
             format!(" {} comments", issue.comments.len()),
@@ -223,7 +223,7 @@ fn draw_help(frame: &mut Frame, app: &App, area: Rect) {
     };
 
     let help = Paragraph::new(help_text)
-        .style(Style::default().fg(Color::DarkGray))
+        .style(Style::default())
         .block(Block::default().borders(Borders::ALL));
 
     frame.render_widget(help, area);
