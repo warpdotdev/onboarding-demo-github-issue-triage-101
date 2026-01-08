@@ -86,6 +86,9 @@ fn run_app<B: ratatui::backend::Backend>(
                     KeyCode::Enter => app.open_selected(),
                     KeyCode::Char('/') => app.start_filter(),
                     KeyCode::Char('r') => app.refresh(),
+                    KeyCode::Char('P') => {
+                        let _ = app.copy_issue_prompt();
+                    }
                     KeyCode::Esc => app.clear_filter(),
                     _ => {}
                 },

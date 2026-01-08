@@ -1,3 +1,5 @@
+use arboard::Clipboard;
+
 use crate::github::{self, Issue};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,5 +123,54 @@ impl App {
     pub fn filter_pop(&mut self) {
         self.filter.pop();
         self.selected = 0;
+    }
+
+    /// Copy a prompt for the selected issue to the clipboard
+    pub fn copy_issue_prompt(&self) -> Result<(), String> {
+        let issue = self
+            .selected_issue()
+            .ok_or_else(|| "No issue selected".to_string())?;
+
+        let mut prompt = String::new();
+
+        // Header
+        prompt.push_str(&format!(
+            "GitHub Issue: {}#{}\n",
+            self.repo, issue.number
+        ));
+        prompt.push_str(&format!("Title: {}\n", issue.title));
+        prompt.push_str(&format!("Author: {}\n", issue.author.login));
+        prompt.push_str(&format!("Created: {}\n", issue.created_at));
+
+        // Labels
+        if !issue.labels.is_empty() {
+            let label_names: Vec<&str> = issue.labels.iter().map(|l| l.name.as_str()).collect();
+            prompt.push_str(&format!("Labels: {}\n", label_names.join(", ")));
+        }
+
+        prompt.push_str("\n---\n\n");
+
+        // Body
+        if let Some(body) = &issue.body {
+            prompt.push_str("## Description\n\n");
+            prompt.push_str(body);
+            prompt.push_str("\n");
+        }
+
+        // Comments
+        if !issue.comments.is_empty() {
+            prompt.push_str("\n## Comments\n\n");
+            for comment in &issue.comments {
+                prompt.push_str(&format!("**@{}**:\n{}\n\n", comment.author, comment.body));
+            }
+        }
+
+        // Copy to clipboard
+        let mut clipboard = Clipboard::new().map_err(|e| format!("Failed to access clipboard: {e}"))?;
+        clipboard
+            .set_text(prompt)
+            .map_err(|e| format!("Failed to copy to clipboard: {e}"))?;
+
+        Ok(())
     }
 }

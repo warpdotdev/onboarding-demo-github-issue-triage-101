@@ -25,7 +25,10 @@ pub struct Label {
 }
 
 #[derive(Debug, Clone)]
-pub struct Comment {}
+pub struct Comment {
+    pub author: String,
+    pub body: String,
+}
 
 /// Build octocrab client, using GITHUB_TOKEN if available
 fn build_client() -> Result<Octocrab, String> {
@@ -92,6 +95,8 @@ pub async fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> 
     Ok(issues)
 }
 
+const MAX_COMMENTS: u8 = 10;
+
 async fn fetch_comments(
     client: &Octocrab,
     owner: &str,
@@ -101,13 +106,20 @@ async fn fetch_comments(
     let Ok(page) = client
         .issues(owner, repo)
         .list_comments(issue_number)
+        .per_page(MAX_COMMENTS)
         .send()
         .await
     else {
         return Vec::new();
     };
 
-    page.items.into_iter().map(|_| Comment {}).collect()
+    page.items
+        .into_iter()
+        .map(|c| Comment {
+            author: c.user.login,
+            body: c.body.unwrap_or_default(),
+        })
+        .collect()
 }
 
 /// Open an issue in the browser
