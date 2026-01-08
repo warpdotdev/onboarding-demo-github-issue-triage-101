@@ -7,7 +7,6 @@ pub struct Issue {
     pub number: u64,
     pub title: String,
     pub body: Option<String>,
-    pub state: String,
     pub author: Author,
     pub created_at: String,
     pub labels: Vec<Label>,
@@ -26,11 +25,7 @@ pub struct Label {
 }
 
 #[derive(Debug, Clone)]
-pub struct Comment {
-    pub author: Author,
-    pub body: String,
-    pub created_at: String,
-}
+pub struct Comment { }
 
 /// Build octocrab client, using GITHUB_TOKEN if available
 fn build_client() -> Result<Octocrab, String> {
@@ -77,7 +72,6 @@ pub async fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> 
             number: gh_issue.number,
             title: gh_issue.title,
             body: gh_issue.body,
-            state: format!("{:?}", gh_issue.state),
             author: Author {
                 login: gh_issue.user.login,
             },
@@ -113,16 +107,7 @@ async fn fetch_comments(
         return Vec::new();
     };
 
-    page.items
-        .into_iter()
-        .map(|c| Comment {
-            author: Author {
-                login: c.user.login,
-            },
-            body: c.body.unwrap_or_default(),
-            created_at: c.created_at.to_rfc3339(),
-        })
-        .collect()
+    page.items.into_iter().map(|_| Comment {}).collect()
 }
 
 /// Open an issue in the browser
