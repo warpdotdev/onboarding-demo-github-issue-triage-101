@@ -25,7 +25,7 @@ pub struct Label {
 }
 
 #[derive(Debug, Clone)]
-pub struct Comment { }
+pub struct Comment {}
 
 /// Build octocrab client, using GITHUB_TOKEN if available
 fn build_client() -> Result<Octocrab, String> {

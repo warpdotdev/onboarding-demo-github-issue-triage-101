@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
     Frame,
 };
 
@@ -80,13 +80,16 @@ fn draw_issue_list(frame: &mut Frame, app: &App, area: Rect) {
             .border_style(Style::default().fg(Color::White)),
     );
 
-    frame.render_widget(list, area);
+    let mut state = ListState::default().with_selected(Some(app.selected));
+    frame.render_stateful_widget(list, area, &mut state);
 }
 
 fn issue_to_list_item<'a>(issue: &Issue, selected: bool) -> ListItem<'a> {
     let mut style = Style::default();
     if selected {
-        style = style.bg(Color::Rgb(60, 60, 80)).add_modifier(Modifier::BOLD);
+        style = style
+            .bg(Color::Rgb(60, 60, 80))
+            .add_modifier(Modifier::BOLD);
     }
 
     // First line: issue number and title
@@ -104,7 +107,7 @@ fn issue_to_list_item<'a>(issue: &Issue, selected: bool) -> ListItem<'a> {
         .iter()
         .take(3)
         .map(|l| {
-        let color = parse_hex_color(&l.color).unwrap_or(Color::Yellow);
+            let color = parse_hex_color(&l.color).unwrap_or(Color::Yellow);
             Span::styled(
                 format!(" {} ", l.name),
                 Style::default().bg(color).fg(Color::Black),
