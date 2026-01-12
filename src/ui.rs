@@ -220,7 +220,7 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
 fn draw_help(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = match app.input_mode {
         InputMode::Normal => {
-            " j/↓: down  k/↑: up  Enter: open  P: copy prompt  /: filter  r: refresh  q: quit "
+            " j/↓: down  k/↑: up  Enter: open  p: copy prompt  /: filter  r: refresh  q: quit "
         }
         InputMode::Filter => " Type to filter  Enter/Esc: done  Backspace: delete ",
     };
