@@ -19,19 +19,19 @@ cargo fmt
 
 ## Architecture
 
-Rust TUI app using ratatui + crossterm. Fetches GitHub issues via `gh` CLI.
+Rust TUI app using ratatui + crossterm. Fetches GitHub issues via octocrab (Rust GitHub API client).
 
 ### Modules
 
 - `main.rs` - CLI parsing (clap), terminal setup, event loop
 - `app.rs` - App state: issues, selection, filter, input mode
-- `github.rs` - `gh issue list` wrapper, JSON parsing, `open` for browser
+- `github.rs` - octocrab API calls, `open` for browser
 - `ui.rs` - ratatui rendering: header, split-pane (list + preview), help bar
 
 ### Data Flow
 
 1. `main` parses args, creates `App`, calls `app.refresh()`
-2. `refresh()` shells out to `gh issue list -R repo --json ...`
+2. `refresh()` calls octocrab to fetch issues from GitHub API
 3. Event loop: `terminal.draw(ui::draw)` + handle key events
 4. Filter is live-applied via `app.filtered_issues()` (title/label match)
 
