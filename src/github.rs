@@ -7,11 +7,10 @@ pub struct Issue {
     pub number: u64,
     pub title: String,
     pub body: Option<String>,
-    pub state: String,
     pub author: Author,
     pub created_at: String,
     pub labels: Vec<Label>,
-    pub comments: Vec<Comment>,
+    pub comment_count: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -25,12 +24,6 @@ pub struct Label {
     pub color: String,
 }
 
-#[derive(Debug, Clone)]
-pub struct Comment {
-    pub author: Author,
-    pub body: String,
-    pub created_at: String,
-}
 
 /// Build octocrab client, using GITHUB_TOKEN if available
 fn build_client() -> Result<Octocrab, String> {
@@ -70,14 +63,13 @@ pub async fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> 
             continue;
         }
 
-        // Fetch comments for this issue
-        let comments = fetch_comments(&client, owner, repo_name, gh_issue.number).await;
+        // Fetch comment count for this issue
+        let comment_count = fetch_comment_count(&client, owner, repo_name, gh_issue.number).await;
 
         let issue = Issue {
             number: gh_issue.number,
             title: gh_issue.title,
             body: gh_issue.body,
-            state: format!("{:?}", gh_issue.state),
             author: Author {
                 login: gh_issue.user.login,
             },
@@ -90,7 +82,7 @@ pub async fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> 
                     color: l.color,
                 })
                 .collect(),
-            comments,
+            comment_count,
         };
         issues.push(issue);
     }
@@ -98,31 +90,22 @@ pub async fn fetch_issues(repo: &str, limit: u32) -> Result<Vec<Issue>, String> 
     Ok(issues)
 }
 
-async fn fetch_comments(
+async fn fetch_comment_count(
     client: &Octocrab,
     owner: &str,
     repo: &str,
     issue_number: u64,
-) -> Vec<Comment> {
+) -> usize {
     let Ok(page) = client
         .issues(owner, repo)
         .list_comments(issue_number)
         .send()
         .await
     else {
-        return Vec::new();
+        return 0;
     };
 
-    page.items
-        .into_iter()
-        .map(|c| Comment {
-            author: Author {
-                login: c.user.login,
-            },
-            body: c.body.unwrap_or_default(),
-            created_at: c.created_at.to_rfc3339(),
-        })
-        .collect()
+    page.items.len()
 }
 
 /// Open an issue in the browser

@@ -199,14 +199,14 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
     }
 
     // Comments summary
-    if !issue.comments.is_empty() {
+    if issue.comment_count > 0 {
         lines.push(Line::from(""));
         lines.push(Line::styled(
             "─".repeat(40),
             Style::default().fg(Color::DarkGray),
         ));
         lines.push(Line::styled(
-            format!(" {} comments", issue.comments.len()),
+            format!(" {} comments", issue.comment_count),
             Style::default().fg(Color::Cyan),
         ));
     }
