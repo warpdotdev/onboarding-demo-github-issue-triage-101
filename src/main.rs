@@ -29,6 +29,7 @@ struct Cli {
 }
 
 fn main() -> io::Result<()> {
+    dotenvy::dotenv().ok();
     let cli = Cli::parse();
 
     // Setup terminal
@@ -84,6 +85,7 @@ fn run_app<B: ratatui::backend::Backend>(
                     KeyCode::Char('j') | KeyCode::Down => app.next(),
                     KeyCode::Char('k') | KeyCode::Up => app.previous(),
                     KeyCode::Enter => app.open_selected(),
+                    KeyCode::Char('a') => app.assign_selected_to_oz(),
                     KeyCode::Char('/') => app.start_filter(),
                     KeyCode::Char('r') => app.refresh(),
                     KeyCode::Char('p') => {

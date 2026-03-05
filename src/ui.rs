@@ -30,6 +30,8 @@ fn draw_header(frame: &mut Frame, app: &App, area: Rect) {
         format!(" {} - Loading...", app.repo)
     } else if let Some(err) = &app.error {
         format!(" {} - Error: {}", app.repo, err)
+    } else if let Some(status) = &app.status {
+        format!(" {} - {}", app.repo, status)
     } else {
         format!(" {} ({} issues)", app.repo, filtered.len())
     };
@@ -220,7 +222,7 @@ fn format_issue_preview(issue: &Issue) -> Text<'static> {
 fn draw_help(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = match app.input_mode {
         InputMode::Normal => {
-            " j/↓: down  k/↑: up  Enter: open  p: copy prompt  /: filter  r: refresh  q: quit "
+            " j/↓: down  k/↑: up  Enter: open  a: assign to Oz  p: copy prompt  /: filter  Esc: clear filter  r: refresh  q: quit "
         }
         InputMode::Filter => " Type to filter  Enter/Esc: done  Backspace: delete ",
     };

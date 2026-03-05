@@ -1,6 +1,7 @@
 use std::process::{Command, Stdio};
 
 use octocrab::Octocrab;
+use serde_json::json;
 
 #[derive(Debug, Clone)]
 pub struct Issue {
@@ -29,7 +30,6 @@ pub struct Comment {
     pub author: String,
     pub body: String,
 }
-
 /// Build octocrab client, using GITHUB_TOKEN if available
 fn build_client() -> Result<Octocrab, String> {
     let builder = Octocrab::builder();
@@ -134,4 +134,56 @@ pub fn open_in_browser(repo: &str, issue_number: u64) -> Result<(), String> {
         .map_err(|e| format!("Failed to open browser: {e}"))?;
 
     Ok(())
+}
+
+/// Trigger an Oz cloud agent run for the issue number.
+pub async fn assign_issue_to_oz(issue_number: u64) -> Result<String, String> {
+    let api_key = std::env::var("WARP_API_KEY")
+        .or_else(|_| std::env::var("OZ_API_KEY"))
+        .map_err(|_| "Missing API key: set WARP_API_KEY (or OZ_API_KEY)".to_string())?;
+    let base_url =
+        std::env::var("WARP_SERVER_URL").unwrap_or_else(|_| "https://app.warp.dev".to_string());
+    let prompt = format!("address issue number {}", issue_number);
+
+    let mut body = json!({
+        "prompt": prompt
+    });
+    if let Ok(environment_id) = std::env::var("OZ_ENVIRONMENT_ID") {
+        body["config"] = json!({ "environment_id": environment_id });
+    }
+
+    let client = reqwest::Client::new();
+    let response = client
+        .post(format!(
+            "{}/api/v1/agent/run",
+            base_url.trim_end_matches('/')
+        ))
+        .bearer_auth(api_key)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to call Oz API: {e}"))?;
+
+    let status = response.status();
+    let payload = response
+        .json::<serde_json::Value>()
+        .await
+        .unwrap_or_else(|_| json!({}));
+    if !status.is_success() {
+        return Err(format!(
+            "Oz API error {}: {}",
+            status.as_u16(),
+            payload
+                .get("message")
+                .and_then(|v| v.as_str())
+                .unwrap_or("request failed")
+        ));
+    }
+
+    let run_id = payload
+        .get("run_id")
+        .or_else(|| payload.get("id"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    Ok(format!("Assigned to Oz run {}", run_id))
 }

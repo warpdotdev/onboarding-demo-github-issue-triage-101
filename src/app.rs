@@ -16,6 +16,7 @@ pub struct App {
     pub input_mode: InputMode,
     pub loading: bool,
     pub error: Option<String>,
+    pub status: Option<String>,
     runtime: tokio::runtime::Runtime,
 }
 
@@ -30,6 +31,7 @@ impl App {
             input_mode: InputMode::Normal,
             loading: true,
             error: None,
+            status: None,
             runtime,
         }
     }
@@ -94,6 +96,26 @@ impl App {
     pub fn open_selected(&self) {
         if let Some(issue) = self.selected_issue() {
             let _ = github::open_in_browser(&self.repo, issue.number);
+        }
+    }
+
+    /// Assign selected issue to Oz cloud agent
+    pub fn assign_selected_to_oz(&mut self) {
+        let Some(issue_number) = self.selected_issue().map(|i| i.number) else {
+            self.error = Some("No issue selected".to_string());
+            self.status = None;
+            return;
+        };
+        self.error = None;
+        match self
+            .runtime
+            .block_on(github::assign_issue_to_oz(issue_number))
+        {
+            Ok(message) => self.status = Some(message),
+            Err(e) => {
+                self.error = Some(e);
+                self.status = None;
+            }
         }
     }
 
